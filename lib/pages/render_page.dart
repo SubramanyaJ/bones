@@ -1,4 +1,3 @@
-// /lib/pages/render_page.dart
 import 'package:flutter/material.dart';
 import 'package:html/dom.dart' as dom;
 import '../core/http_service.dart';
@@ -8,12 +7,18 @@ import '../models/page_state.dart';
 
 class RenderPage extends StatefulWidget {
   final String initialUrl;
-  final VoidCallback onThemeToggle;
+  final String fontFamily;
+  final double fontSize;
+  final String uiFontFamily;
+  final double uiFontSize;
 
   const RenderPage({
     super.key,
     required this.initialUrl,
-    required this.onThemeToggle,
+    required this.fontFamily,
+    required this.fontSize,
+    required this.uiFontFamily,
+    required this.uiFontSize,
   });
 
   @override
@@ -23,7 +28,7 @@ class RenderPage extends StatefulWidget {
 class _RenderPageState extends State<RenderPage> {
   final BrowserHistory _history = BrowserHistory();
   final ScrollController _scrollController = ScrollController();
-  
+
   bool _isLoading = false;
   String? _error;
   List<Widget> _content = [];
@@ -50,21 +55,24 @@ class _RenderPageState extends State<RenderPage> {
 
     try {
       HttpResponse response = await HttpService.fetchUrl(url);
-      
+
       if (!response.isSuccess) {
         throw HttpException('HTTP ${response.statusCode}');
       }
 
       String cleanHtml = ParserService.stripScriptsAndStyles(response.body);
       dom.Document document = ParserService.parseHtml(cleanHtml);
-      
+
       String title = ParserService.extractTitle(document);
       List<dom.Element> elements = ParserService.extractMainContent(document);
-      
+
       List<Widget> widgets = RenderService.renderElements(
         elements,
         _onLinkTap,
         response.url,
+        context,
+        fontFamily: widget.fontFamily,
+        fontSize: widget.fontSize,
       );
 
       setState(() {
@@ -74,7 +82,6 @@ class _RenderPageState extends State<RenderPage> {
         _isLoading = false;
       });
 
-      // Add to history
       PageState pageState = PageState(
         url: response.url,
         title: title,
@@ -82,7 +89,6 @@ class _RenderPageState extends State<RenderPage> {
       );
       _history.push(pageState);
 
-      // Scroll to top
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
           0,
@@ -90,7 +96,6 @@ class _RenderPageState extends State<RenderPage> {
           curve: Curves.easeOut,
         );
       }
-
     } catch (e) {
       setState(() {
         _error = e.toString();
@@ -125,7 +130,7 @@ class _RenderPageState extends State<RenderPage> {
 
   void _showUrlDialog() {
     TextEditingController controller = TextEditingController(text: _currentUrl);
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -162,34 +167,41 @@ class _RenderPageState extends State<RenderPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.black,
+        iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
           _pageTitle.isNotEmpty ? _pageTitle : 'Loading...',
           overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: Colors.white,
+            fontFamily: widget.uiFontFamily,
+            fontSize: widget.uiFontSize,
+          ),
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.arrow_back),
+            tooltip: "Back",
+            color: Colors.white,
             onPressed: _history.canGoBack ? _goBack : null,
           ),
           IconButton(
             icon: const Icon(Icons.arrow_forward),
+            tooltip: "Forward",
+            color: Colors.white,
             onPressed: _history.canGoForward ? _goForward : null,
           ),
           IconButton(
             icon: const Icon(Icons.refresh),
+            tooltip: "Reload",
+            color: Colors.white,
             onPressed: _refresh,
           ),
           IconButton(
             icon: const Icon(Icons.link),
+            tooltip: "Go to URL",
+            color: Colors.white,
             onPressed: _showUrlDialog,
-          ),
-          IconButton(
-            icon: Icon(
-              Theme.of(context).brightness == Brightness.dark
-                  ? Icons.light_mode
-                  : Icons.dark_mode,
-            ),
-            onPressed: widget.onThemeToggle,
           ),
         ],
       ),

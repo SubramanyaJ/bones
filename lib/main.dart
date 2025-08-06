@@ -1,8 +1,5 @@
-// /lib/main.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'pages/url_prompt_page.dart';
-import 'core/app_theme.dart';
 
 void main() {
   runApp(const BonesApp());
@@ -16,24 +13,64 @@ class BonesApp extends StatefulWidget {
 }
 
 class _BonesAppState extends State<BonesApp> {
-  ThemeMode _themeMode = ThemeMode.system;
+  final String _uiFontFamily = 'FiraCode';
+  final double _uiFontSize = 16;
 
-  void _toggleTheme() {
-    setState(() {
-      _themeMode = _themeMode == ThemeMode.light 
-          ? ThemeMode.dark 
-          : ThemeMode.light;
-    });
-  }
+  String _fontFamily = 'FiraCode';
+  double _fontSize = 16;
+
+  static const Color accentTeal = Color(0xFF008080);
 
   @override
   Widget build(BuildContext context) {
+    final themeData = ThemeData(
+      brightness: Brightness.dark,
+      useMaterial3: true,
+      primaryColor: accentTeal,
+      colorScheme: ColorScheme.dark(
+        primary: accentTeal,
+        secondary: accentTeal,
+        outline: accentTeal,
+      ),
+      fontFamily: _uiFontFamily,
+      scaffoldBackgroundColor: Colors.black,
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.black,
+        foregroundColor: accentTeal,
+        iconTheme: IconThemeData(color: accentTeal),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: accentTeal,
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: accentTeal,
+        ),
+      ),
+      sliderTheme: const SliderThemeData(
+        activeTrackColor: accentTeal,
+        thumbColor: accentTeal,
+        overlayColor: accentTeal,
+        inactiveTrackColor: Colors.grey,
+      ),
+    );
+
     return MaterialApp(
-      title: 'Bones Browser',
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: _themeMode,
-      home: URLPromptPage(onThemeToggle: _toggleTheme),
+      title: 'bones',
+      theme: themeData,
+      darkTheme: themeData,
+      themeMode: ThemeMode.dark, // always dark
+      home: URLPromptPage(
+        fontFamily: _fontFamily,
+        fontSize: _fontSize,
+        onFontChange: (fam) => setState(() => _fontFamily = fam),
+        onFontSizeChange: (size) =>
+            setState(() => _fontSize = size.clamp(10, 20)),
+        uiFontFamily: _uiFontFamily,
+        uiFontSize: _uiFontSize,
+      ),
       debugShowCheckedModeBanner: false,
     );
   }
